@@ -4,7 +4,7 @@
     {
         public Product Product { get; set; }
         public int Quantity { get; set; }
-        public decimal TaxedAmount { get; set; }
-        public decimal Tax { get; set; }
+        public decimal TaxedAmount => decimal.Round(Product.UnitaryTaxedAmount * Quantity);
+        public decimal Tax => decimal.Round(Product.UnitaryTax * Quantity);
     }
 }

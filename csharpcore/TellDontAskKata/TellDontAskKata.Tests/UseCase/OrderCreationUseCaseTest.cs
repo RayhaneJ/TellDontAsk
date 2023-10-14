@@ -11,7 +11,7 @@ namespace TellDontAskKata.Tests.UseCase
     public class OrderCreationUseCaseTest
     {
         private readonly TestOrderRepository _orderRepository;
-        private readonly IProductCatalog _productCatalog;
+        private readonly IProductRepository _productCatalog;
         private readonly OrderCreationUseCase _useCase;
 
         public OrderCreationUseCaseTest()
