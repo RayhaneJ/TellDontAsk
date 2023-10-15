@@ -1,71 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using TellDontAskKata.Main.Domain;
+using TellDontAskKata.Main.Dtos;
+using TellDontAskKata.Main.Exceptions;
 using TellDontAskKata.Main.Repository;
-using TellDontAskKata.Main.UseCase;
 using TellDontAskKata.Tests.Doubles;
 using Xunit;
 
 namespace TellDontAskKata.Tests.UseCase
 {
-    public class OrderCreationUseCaseTest
+    public class OrderCreationUseCaseTest : BaseUseCastTest
     {
-        private readonly TestOrderRepository _orderRepository;
-        private readonly IProductRepository _productCatalog;
-        private readonly OrderCreationUseCase _useCase;
-
-        public OrderCreationUseCaseTest()
-        {
-            var food = new Category { 
-                Name = "food",
-                TaxPercentage = 10m
-            };
-
-            _productCatalog = new InMemoryProductCatalog(new List<Product>
-            {
-                new Product
-                {
-                    Name = "salad",
-                    Price = 3.56m,
-                    Category = food
-                },
-                new Product
-                {
-                    Name = "tomato",
-                    Price = 4.65m,
-                    Category = food
-                }
-            });
-
-            _orderRepository = new TestOrderRepository();
-
-            _useCase = new OrderCreationUseCase(_orderRepository, _productCatalog);
-        }
-
-
         [Fact]
         public void SellMultipleItems()
         {
-            var saladRequest = new SellItemRequest
+            var saladeItem = new CreateOrderDto
             {
                 ProductName = "salad",
                 Quantity = 2
             };
 
-            var tomatoRequest = new SellItemRequest
+            var tomatoItem = new CreateOrderDto
             {
                 ProductName = "tomato",
                 Quantity = 3
             };
 
-            var request = new SellItemsRequest
-            {
-                Requests = new List<SellItemRequest> { saladRequest, tomatoRequest }
-            };
+            var createDtos = new List<CreateOrderDto> { saladeItem, tomatoItem };
 
-            _useCase.Run(request);
+            orderService.CreateOrder(createDtos);
 
-            Order insertedOrder = _orderRepository.GetSavedOrder();
+            Order insertedOrder = orderRepository.GetSavedOrder();
             Assert.Equal(OrderStatus.Created, insertedOrder.Status);
             Assert.Equal(23.20m, insertedOrder.Total);
             Assert.Equal(2.13m, insertedOrder.Tax);
@@ -86,14 +51,9 @@ namespace TellDontAskKata.Tests.UseCase
         [Fact]
         public void UnknownProduct()
         {
-            var request = new SellItemsRequest
-            {
-                Requests = new List<SellItemRequest> { 
-                    new SellItemRequest { ProductName = "unknown product"}
-                }
-            };
-
-            Action actionToTest = () => _useCase.Run(request);
+            Action actionToTest = () => orderService.CreateOrder(new List<CreateOrderDto> {
+            new CreateOrderDto { ProductName ="unknown product"}
+            });
 
             Assert.Throws<UnknownProductException>(actionToTest);
         }

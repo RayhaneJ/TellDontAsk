@@ -2,26 +2,42 @@
 using System.Collections.Generic;
 using System.Text;
 using TellDontAskKata.Main.Domain;
+using TellDontAskKata.Main.Dtos;
 using TellDontAskKata.Main.Exceptions;
 using TellDontAskKata.Main.Repository;
 
 namespace TellDontAskKata.Main.Service
 {
-    public class CreateOrderDto
-    {
-        public int Quantity { get; set; }
-        public string ProductName { get; set; }
-    }
 
-    public class OrderService
+    public class OrderService : IOrderService
     {
         private readonly IOrderRepository orderRepository;
         private readonly IProductRepository productRepository;
+        private readonly IShipmentService shipmentService;
 
-        public OrderService(IOrderRepository orderRepository, IProductRepository productRepository)
+        public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, IShipmentService shipmentService)
         {
             this.orderRepository = orderRepository;
             this.productRepository = productRepository;
+            this.shipmentService = shipmentService;
+        }
+
+        public void ShipOrder(int orderId)
+        {
+            var order = orderRepository.GetById(orderId);
+
+            switch (order.Status)
+            {
+                case OrderStatus.Rejected:
+                case OrderStatus.Created:
+                    throw new OrderCannotBeShippedException();
+                case OrderStatus.Shipped:
+                    throw new OrderCannotBeShippedTwiceException();
+            }
+
+            shipmentService.Ship(order);
+            order.Status = OrderStatus.Shipped;
+            orderRepository.Save(order);
         }
 
         public void CreateOrder(List<CreateOrderDto> orderDtos)
@@ -30,6 +46,8 @@ namespace TellDontAskKata.Main.Service
             {
                 Status = OrderStatus.Created,
                 Currency = "EUR",
+                Tax = 0m,
+                Total = 0m
             };
 
             orderDtos.ForEach(orderDto =>

@@ -1,25 +1,13 @@
 ﻿using System;
 using TellDontAskKata.Main.Domain;
-using TellDontAskKata.Main.UseCase;
+using TellDontAskKata.Main.Exceptions;
 using TellDontAskKata.Tests.Doubles;
 using Xunit;
 
 namespace TellDontAskKata.Tests.UseCase
 {
-    public class OrderShipmentUseCaseTest
+    public class OrderShipmentUseCaseTest : BaseUseCastTest
     {
-        private readonly TestOrderRepository _orderRepository;
-        private readonly TestShipmentService _shipmentService;
-        private readonly OrderShipmentUseCase _useCase;
-
-        public OrderShipmentUseCaseTest()
-        {
-            _orderRepository = new TestOrderRepository();
-            _shipmentService = new TestShipmentService();
-            _useCase = new OrderShipmentUseCase(_orderRepository, _shipmentService);
-        }
-
-
         [Fact]
         public void ShipApprovedOrder()
         {
@@ -28,17 +16,12 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Approved,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderShipmentRequest
-            {
-                OrderId = 1
-            };
+            orderService.ShipOrder(1);
 
-            _useCase.Run(request);
-
-            Assert.Equal(OrderStatus.Shipped, _orderRepository.GetSavedOrder().Status);
-            Assert.Same(initialOrder, _shipmentService.GetShippedOrder());
+            Assert.Equal(OrderStatus.Shipped, orderRepository.GetSavedOrder().Status);
+            Assert.Same(initialOrder, shipmentService.GetShippedOrder());
         }
 
         [Fact]
@@ -49,18 +32,12 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Created,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
-
-            var request = new OrderShipmentRequest
-            {
-                OrderId = 1
-            };
-
-            Action actionToTest = () => _useCase.Run(request);
+            orderRepository.AddOrder(initialOrder);
+            Action actionToTest = () => orderService.ShipOrder(1);
 
             Assert.Throws<OrderCannotBeShippedException>(actionToTest);
-            Assert.Null(_orderRepository.GetSavedOrder());
-            Assert.Null(_shipmentService.GetShippedOrder());
+            Assert.Null(orderRepository.GetSavedOrder());
+            Assert.Null(shipmentService.GetShippedOrder());
         }
 
         [Fact]
@@ -71,18 +48,13 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Rejected,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderShipmentRequest
-            {
-                OrderId = 1
-            };
-
-            Action actionToTest = () => _useCase.Run(request);
+            Action actionToTest = () => orderService.ShipOrder(1);
 
             Assert.Throws<OrderCannotBeShippedException>(actionToTest);
-            Assert.Null(_orderRepository.GetSavedOrder());
-            Assert.Null(_shipmentService.GetShippedOrder());
+            Assert.Null(orderRepository.GetSavedOrder());
+            Assert.Null(shipmentService.GetShippedOrder());
         }
 
         [Fact]
@@ -93,18 +65,13 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Shipped,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderShipmentRequest
-            {
-                OrderId = 1
-            };
-
-            Action actionToTest = () => _useCase.Run(request);
+            Action actionToTest = () => orderService.ShipOrder(1);
 
             Assert.Throws<OrderCannotBeShippedTwiceException>(actionToTest);
-            Assert.Null(_orderRepository.GetSavedOrder());
-            Assert.Null(_shipmentService.GetShippedOrder());
+            Assert.Null(orderRepository.GetSavedOrder());
+            Assert.Null(shipmentService.GetShippedOrder());
         }
 
 

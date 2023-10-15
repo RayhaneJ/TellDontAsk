@@ -2,7 +2,7 @@
 
 namespace TellDontAskKata.Main.Repository
 {
-    public interface IProductCatalog
+    public interface IProductRepository
     {
         Product GetByName(string name);
     }

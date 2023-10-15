@@ -1,23 +1,15 @@
 ﻿using System;
 using TellDontAskKata.Main.Domain;
-using TellDontAskKata.Main.UseCase;
+using TellDontAskKata.Main.Exceptions;
+using TellDontAskKata.Main.Repository;
+using TellDontAskKata.Main.Service;
 using TellDontAskKata.Tests.Doubles;
 using Xunit;
 
 namespace TellDontAskKata.Tests.UseCase
 {
-    public class OrderApprovalUseCaseTest
+    public class OrderApprovalUseCaseTest : BaseUseCastTest
     {
-        private readonly TestOrderRepository _orderRepository;
-        private readonly OrderApprovalUseCase _useCase;
-
-        public OrderApprovalUseCaseTest()
-        {
-            _orderRepository = new TestOrderRepository();
-            _useCase = new OrderApprovalUseCase(_orderRepository);
-        }
-
-
         [Fact]
         public void ApprovedExistingOrder()
         {
@@ -26,17 +18,11 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Created,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderApprovalRequest
-            {
-                OrderId = 1,
-                Approved = true
-            };
+            orderService.ApproveOrder(1);
 
-            _useCase.Run(request);
-
-            var savedOrder = _orderRepository.GetSavedOrder();
+            var savedOrder = orderRepository.GetSavedOrder();
             Assert.Equal(OrderStatus.Approved, savedOrder.Status);
         }
 
@@ -48,17 +34,11 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Created,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderApprovalRequest
-            {
-                OrderId = 1,
-                Approved = false
-            };
+            orderService.RejectOrder(1);
 
-            _useCase.Run(request);
-
-            var savedOrder = _orderRepository.GetSavedOrder();
+            var savedOrder = orderRepository.GetSavedOrder();
             Assert.Equal(OrderStatus.Rejected, savedOrder.Status);
         }
 
@@ -71,19 +51,12 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Rejected,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderApprovalRequest
-            {
-                OrderId = 1,
-                Approved = true
-            };
-
-
-            Action actionToTest = () => _useCase.Run(request);
+            Action actionToTest = () => orderService.ApproveOrder(1);
       
             Assert.Throws<RejectedOrderCannotBeApprovedException>(actionToTest);
-            Assert.Null(_orderRepository.GetSavedOrder());
+            Assert.Null(orderRepository.GetSavedOrder());
         }
 
         [Fact]
@@ -94,19 +67,12 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Approved,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderApprovalRequest
-            {
-                OrderId = 1,
-                Approved = false
-            };
-
-
-            Action actionToTest = () => _useCase.Run(request);
+            Action actionToTest = () => orderService.RejectOrder(1);
             
             Assert.Throws<ApprovedOrderCannotBeRejectedException>(actionToTest);
-            Assert.Null(_orderRepository.GetSavedOrder());
+            Assert.Null(orderRepository.GetSavedOrder());
         }
 
         [Fact]
@@ -117,20 +83,12 @@ namespace TellDontAskKata.Tests.UseCase
                 Status = OrderStatus.Shipped,
                 Id = 1
             };
-            _orderRepository.AddOrder(initialOrder);
+            orderRepository.AddOrder(initialOrder);
 
-            var request = new OrderApprovalRequest
-            {
-                OrderId = 1,
-                Approved = false
-            };
-
-
-            Action actionToTest = () => _useCase.Run(request);
+            Action actionToTest = () => orderService.RejectOrder(1);
 
             Assert.Throws<ShippedOrdersCannotBeChangedException>(actionToTest);
-            Assert.Null(_orderRepository.GetSavedOrder());
+            Assert.Null(orderRepository.GetSavedOrder());
         }
-
     }
 }

@@ -7,8 +7,8 @@ namespace TellDontAskKata.Main.Domain
 {
     public class Order
     {
-        public decimal Total { get; set; } = 0m;
-        public decimal Tax { get; set; } = 0m;
+        public decimal Total { get; set; }
+        public decimal Tax { get; set; }
         public string Currency { get; set; }
         public ObservableCollection<OrderItem> Items { get; private set; } = new ObservableCollection<OrderItem>();
         public OrderStatus Status { get; set; }
